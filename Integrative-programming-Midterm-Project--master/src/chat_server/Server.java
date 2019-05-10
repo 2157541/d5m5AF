@@ -41,10 +41,8 @@ public class Server extends javax.swing.JFrame {
 
                     if (data[2].equals("Connect")) {
                         tellEveryone((data[0] + ":" + data[1] + ":"));
-                      //  userAdd(data[0]);
                     } else if (data[2].equals("Disconnect")) {
                         tellEveryone((data[0] + ":has disconnected." + ":"));
-                        //userRemove(data[0]);
                     } else if (data[2].equals("Chat")) {
                         tellEveryone(message);
                     } else {
@@ -172,7 +170,7 @@ public class Server extends javax.swing.JFrame {
 
     private void b_endActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b_endActionPerformed
         try {
-            Thread.sleep(5000);                 //5000 milliseconds is five second.
+            Thread.sleep(5000);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
@@ -238,35 +236,7 @@ public class Server extends javax.swing.JFrame {
             }
         }
     }
-/*
-    public void userAdd(String data) {
-        String message, add = ": :Connect", done = "Server: :Done", name = data;
-        ta_chat.append("Before " + name + " added. \n");
-        users.add(name);
-        ta_chat.append("After " + name + " added. \n");
-        String[] tempList = new String[(users.size())];
-        users.toArray(tempList);
 
-        for (String token : tempList) {
-            message = (token + add);
-            tellEveryone(message);
-        }
-        tellEveryone(done);
-    }
-
-    public void userRemove(String data) {
-        String message, add = ": :Connect", done = "Server: :Done", name = data;
-        users.remove(name);
-        String[] tempList = new String[(users.size())];
-        users.toArray(tempList);
-
-        for (String token : tempList) {
-            message = (token + add);
-            tellEveryone(message);
-        }
-        tellEveryone(done);
-    }
-*/
     public void tellEveryone(String message) {
         Iterator it = clientOutputStreams.iterator();
 
