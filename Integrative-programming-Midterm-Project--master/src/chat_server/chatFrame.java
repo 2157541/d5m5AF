@@ -10,102 +10,50 @@ import java.sql.Statement;
 import javax.swing.JOptionPane;
 
 public class chatFrame extends javax.swing.JFrame {
-
     String username, address = "localhost";
     ArrayList<String> users = new ArrayList();
     String port;
     Boolean isConnected = false;
-
+    String stream;
+    String[] data;
     Socket sock;
     BufferedReader reader;
     PrintWriter writer;
 
-    //--------------------------//
-    public void ListenThread() {
-        Thread IncomingReader = new Thread(new IncomingReader());
-        IncomingReader.start();
+    public void writeUsers() {
+        String[] tempList = new String[(users.size())];
+        users.toArray(tempList);
     }
 
-    //--------------------------//
     public void userAdd(String data) {
         users.add(data);
     }
 
-    //--------------------------//
-    public void userRemove(String data) {
-        ta_chat.append(data + " is now offline.\n");
-    }
-
-    //--------------------------//
-    public void writeUsers() {
-        String[] tempList = new String[(users.size())];
-        users.toArray(tempList);
-        for (String token : tempList) {
-            //users.append(token + "\n");
-        }
-    }
-
-    //--------------------------//
-    public void sendDisconnect() {
-        String bye = (username + ": :Disconnect");
-        try {
-            writer.println(bye);
-            writer.flush();
-        } catch (Exception e) {
-            ta_chat.append("Could not send Disconnect message.\n");
-        }
-    }
-
-    //--------------------------//
-    public void Disconnect() {
-        try {
-            ta_chat.append("Disconnected.\n");
-            sock.close();
-        } catch (Exception ex) {
-            ta_chat.append("Failed to disconnect. \n");
-        }
-        isConnected = false;
-        f_username.setEditable(true);
-
+    public void ListenThread() {
+        Thread IncomingReader = new Thread(new IncomingReader());
+        IncomingReader.start();
     }
 
     public chatFrame() {
         initComponents();
     }
 
-    //--------------------------//
     public class IncomingReader implements Runnable {
 
         @Override
         public void run() {
-            String[] data;
-            String stream, done = "Done", connect = "Connect", disconnect = "Disconnect", chat = "Chat";
-
             try {
                 while ((stream = reader.readLine()) != null) {
                     data = stream.split(":");
+                    ta_chat.append(data[0] + ": " + data[1] + "\n");
+                    ta_chat.setCaretPosition(ta_chat.getDocument().getLength());
 
-                    if (data[2].equals(chat)) {
-                        ta_chat.append(data[0] + ": " + data[1] + "\n");
-                        ta_chat.setCaretPosition(ta_chat.getDocument().getLength());
-                    } else if (data[2].equals(connect)) {
-                        ta_chat.removeAll();
-                        onlineUsers.removeAll();
-                        userAdd(data[0]);
-                        userAdd(data[0]);
-                    } else if (data[2].equals(disconnect)) {
-                        userRemove(data[0]);
-                    } else if (data[2].equals(done)) {
-                        writeUsers();
-                        users.clear();
-                    }
                 }
-            } catch (Exception ex) {
+            } catch (IOException ex) {
             }
         }
     }
 
-    //--------------------------//
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -193,6 +141,12 @@ public class chatFrame extends javax.swing.JFrame {
         jLabel1.setText("username:");
 
         jLabel2.setText("password:");
+
+        f_username.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                f_usernameActionPerformed(evt);
+            }
+        });
 
         f_password.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -306,60 +260,86 @@ public class chatFrame extends javax.swing.JFrame {
 
         String user1 = f_username.getText();
         String pwd = f_password.getText();
-        if (isConnected == false) {
-            port = tf_port.getText();
-            int inputport = Integer.parseInt(port);
-            f_username.setEditable(false);
-            String add = tf_address.getText();
 
-            try (Connection conn = (Connection) DriverManager.getConnection(dbURL, username1, password1)) {
-                String sql = "SELECT username, password FROM users.signup";
-                Statement statement = conn.createStatement();
-                ResultSet result = statement.executeQuery(sql);
+        try {
+            Connection conn = (Connection) DriverManager.getConnection(dbURL, username1, password1);
+            String sql = "SELECT username, password, firstname FROM users.signup";
+            Statement statement = conn.createStatement();
+            ResultSet result = statement.executeQuery(sql);
 
-                while (result.next()) {
-                    String username = result.getString("username");
-                    String password = result.getString("password");
+            while (result.next()) {
+                String username = result.getString("username");
+                String password = result.getString("password");
+                String name = result.getString("firstname");
 
-                    if (user1.equals(username) && pwd.equals(password)) {
+                if (user1.equals(username) && pwd.equals(password)) {
+                    JOptionPane.showMessageDialog(null, "Connected");
+                } else if (!user1.equals(username) && !pwd.equals(password)) {
+
+                }
+
+                if (isConnected == false) {
+                    username = name;
+                    port = tf_port.getText();
+                    int inputport = Integer.parseInt(port);
+                    f_username.setEditable(false);
+                    String add = tf_address.getText();
+
+                    try {
                         sock = new Socket(add, inputport);
                         InputStreamReader streamreader = new InputStreamReader(sock.getInputStream());
                         reader = new BufferedReader(streamreader);
                         writer = new PrintWriter(sock.getOutputStream());
-                        writer.println(user1 + ":has connected.:Connect");
+                        writer.println(name + ":has connected.:Connect");
                         writer.flush();
                         isConnected = true;
-                        JOptionPane.showMessageDialog(null, "Connected");
+                    } catch (Exception ex) {
+                        ta_chat.append("Cannot Connect! Try Again. \n");
+                        f_username.setEditable(true);
                     }
 
                     ListenThread();
 
                 }
 
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
             }
 
-        } else if (isConnected == true) {
-            ta_chat.append("You are already connected. \n");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
 
     }//GEN-LAST:event_OnlineActionPerformed
 
     private void b_disconnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b_disconnectActionPerformed
-        sendDisconnect();
-        Disconnect();
+        String name = f_username.getText();
+        String bye = (name + ": :Disconnected");
+        try {
+            writer.println(bye);
+            writer.flush();
+        } catch (Exception e) {
+            ta_chat.append("Could not log out messenger.\n");
+        }
+        ta_chat.append(name + " is disconnected.\n");
+        try {
+            ta_chat.append("Disconnected.\n");
+            sock.close();
+        } catch (IOException ex) {
+            ta_chat.append("Failed to disconnect. \n");
+        }
+        isConnected = false;
+        ta_chat.setEditable(true);
     }//GEN-LAST:event_b_disconnectActionPerformed
 
     private void b_sendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b_sendActionPerformed
+        String name = f_username.getText();
         String nothing = "";
         if ((tf_chat.getText()).equals(nothing)) {
             tf_chat.setText("");
             tf_chat.requestFocus();
         } else {
             try {
-                writer.println(username + ":" + tf_chat.getText() + ":" + "Chat");
-                writer.flush(); // flushes the buffer
+                writer.println(name + ":" + tf_chat.getText() + ":" + "Chat");
+                writer.flush();
             } catch (Exception ex) {
                 ta_chat.append("Message was not sent. \n");
             }
@@ -382,6 +362,10 @@ public class chatFrame extends javax.swing.JFrame {
     private void f_passwordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_f_passwordActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_f_passwordActionPerformed
+
+    private void f_usernameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_f_usernameActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_f_usernameActionPerformed
 
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {

@@ -8,7 +8,7 @@ public class Server extends javax.swing.JFrame {
 
     ArrayList clientOutputStreams;
     ArrayList<String> users;
-    String port;
+    String port, message, data[];
 
     public class ClientHandler implements Runnable {
 
@@ -30,9 +30,6 @@ public class Server extends javax.swing.JFrame {
 
         @Override
         public void run() {
-            String message, connect = "Connect", disconnect = "Disconnect", chat = "Chat";
-            String[] data;
-
             try {
                 while ((message = reader.readLine()) != null) {
                     ta_chat.append("Received: " + message + "\n");
@@ -42,13 +39,13 @@ public class Server extends javax.swing.JFrame {
                         ta_chat.append(token + "\n");
                     }
 
-                    if (data[2].equals(connect)) {
-                        tellEveryone((data[0] + ":" + data[1] + ":" + chat));
-                        userAdd(data[0]);
-                    } else if (data[2].equals(disconnect)) {
-                        tellEveryone((data[0] + ":has disconnected." + ":" + chat));
-                        userRemove(data[0]);
-                    } else if (data[2].equals(chat)) {
+                    if (data[2].equals("Connect")) {
+                        tellEveryone((data[0] + ":" + data[1] + ":"));
+                      //  userAdd(data[0]);
+                    } else if (data[2].equals("Disconnect")) {
+                        tellEveryone((data[0] + ":has disconnected." + ":"));
+                        //userRemove(data[0]);
+                    } else if (data[2].equals("Chat")) {
                         tellEveryone(message);
                     } else {
                         ta_chat.append("No Conditions were met. \n");
@@ -241,7 +238,7 @@ public class Server extends javax.swing.JFrame {
             }
         }
     }
-
+/*
     public void userAdd(String data) {
         String message, add = ": :Connect", done = "Server: :Done", name = data;
         ta_chat.append("Before " + name + " added. \n");
@@ -269,7 +266,7 @@ public class Server extends javax.swing.JFrame {
         }
         tellEveryone(done);
     }
-
+*/
     public void tellEveryone(String message) {
         Iterator it = clientOutputStreams.iterator();
 

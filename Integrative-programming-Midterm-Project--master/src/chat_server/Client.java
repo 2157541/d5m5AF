@@ -1,8 +1,12 @@
 
 package chat_server;
 
-public class Client extends javax.swing.JFrame {
+import javax.swing.JOptionPane;
 
+public class Client extends javax.swing.JFrame {
+    
+    
+    // ---------------------------------------------------------------------------------
     public Client() {
         initComponents();
     }
